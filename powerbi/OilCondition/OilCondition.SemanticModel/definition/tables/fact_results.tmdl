@@ -1,0 +1,179 @@
+table fact_results
+	lineageTag: 2fdb5f8d-437d-5587-9bd4-da54b6fd91fa
+
+	measure 'Avg Value' = AVERAGE ( fact_results[value] )
+		formatString: #,0.##
+		lineageTag: c73298f7-920e-5ccc-b34d-9dad211cd5b2
+
+	measure 'Avg Value per 250h' = AVERAGE ( fact_results[value_per_250h] )
+		formatString: #,0.0
+		lineageTag: 70244e02-8bc2-5d4f-b808-fef469bd2072
+
+	measure 'Latest Value' = ```
+			VAR PeriodEnd = [Report Date]
+			VAR LatestDate =
+			    CALCULATE ( MAX ( fact_results[sample_date] ), REMOVEFILTERS ( 'Date' ), fact_results[sample_date] <= PeriodEnd )
+			RETURN
+			    CALCULATE ( AVERAGE ( fact_results[value] ), REMOVEFILTERS ( 'Date' ), fact_results[sample_date] = LatestDate )
+			```
+		formatString: #,0.##
+		lineageTag: 23940f18-4f89-50eb-a182-be4478ee8742
+
+	measure 'Caution Limit' = MAX ( dim_test[caution_high] )
+		formatString: #,0.##
+		lineageTag: 280633d5-bb6e-5467-940d-f0a3160e4dde
+
+	measure 'Critical Limit' = MAX ( dim_test[critical_high] )
+		formatString: #,0.##
+		lineageTag: 90fbab35-a3e0-581e-ab84-e64463979861
+
+	measure 'Latest vs Caution %' = DIVIDE ( [Latest Value], [Caution Limit] )
+		formatString: 0%
+		lineageTag: d701507c-7100-57ad-8bb7-163c4a766fd5
+
+	measure 'Health Value' = IF ( SELECTEDVALUE ( dim_test[test] ) IN { "Fe", "Cu", "Pb", "Al", "Si", "Na", "K", "FUEL", "SOOT" }, [Latest Value] )
+		formatString: #,0.##
+		lineageTag: cc3a4613-b637-5c93-8c4f-790e1254e96a
+
+	measure 'Health Cell Background' = ```
+			VAR v = [Latest Value]
+			VAR caution = MAX ( dim_test[caution_high] )
+			VAR critical = MAX ( dim_test[critical_high] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( v ) || ISBLANK ( caution ), BLANK (),
+			        v >= critical, "#D03B3B",
+			        v >= caution, "#EC835A",
+			        v >= 0.7 * caution, "#FDE7A9",
+			        "#E8F5EA"
+			    )
+			```
+		lineageTag: 937e40db-7524-524e-99b5-4b848c398340
+
+	measure 'Health Cell Font' = ```
+			VAR v = [Latest Value]
+			VAR caution = MAX ( dim_test[caution_high] )
+			RETURN IF ( NOT ISBLANK ( caution ) && v >= caution, "#FFFFFF", "#1B2B3F" )
+			```
+		lineageTag: e80e5c7e-cf47-56aa-8da5-5c39fa523c80
+
+	measure 'Result Status Colour' = SWITCH ( SELECTEDVALUE ( fact_results[limit_status] ), "Critical", "#D03B3B", "Caution", "#EC835A", "Normal", "#0CA30C", "#8A97A8" )
+		lineageTag: 02fe77c3-e7b2-5f8f-b83a-96ec73c008be
+
+	measure 'Trend Title' = "Trend: " & SELECTEDVALUE ( dim_test[description], "select one test" ) & " (" & SELECTEDVALUE ( dim_test[unit] ) & ")"
+		lineageTag: eff9ebc0-a4fe-5f9d-b55e-5e1751daea34
+
+	measure 'Flagged Results' = ```
+			CALCULATE (
+			    COUNTROWS ( fact_results ),
+			    fact_results[anomaly] <> "" || fact_results[limit_status] IN { "Caution", "Critical" }
+			)
+			```
+		formatString: 0
+		lineageTag: d31c4eab-baa4-55ff-afa9-ff429be3c554
+
+	column sample_id
+		dataType: string
+		lineageTag: 5f8af8c5-68af-5140-b102-fd91de5f00f6
+		summarizeBy: none
+		sourceColumn: sample_id
+
+		annotation SummarizationSetBy = User
+
+	column test
+		dataType: string
+		lineageTag: 87febf1e-7a14-58d6-ae0e-43766063da5d
+		summarizeBy: none
+		sourceColumn: test
+
+		annotation SummarizationSetBy = User
+
+	column value
+		dataType: double
+		formatString: #,0.##
+		lineageTag: 36438452-b979-5f80-b255-184369c8a855
+		summarizeBy: none
+		sourceColumn: value
+
+		annotation SummarizationSetBy = User
+
+	column unit
+		dataType: string
+		lineageTag: b30b673a-f316-5213-bad5-e63dcc8aa081
+		summarizeBy: none
+		sourceColumn: unit
+
+		annotation SummarizationSetBy = User
+
+	column unit_id
+		dataType: string
+		lineageTag: ed519d8e-7d07-58b6-9042-1c6d96b8d610
+		summarizeBy: none
+		sourceColumn: unit_id
+
+		annotation SummarizationSetBy = User
+
+	column sample_date
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 3be3785d-44de-56e5-a50e-fe34c4c12165
+		summarizeBy: none
+		sourceColumn: sample_date
+
+		annotation SummarizationSetBy = User
+
+	column limit_status
+		dataType: string
+		lineageTag: a94dd79e-53a2-5e07-8f83-9b5a61e5395c
+		summarizeBy: none
+		sourceColumn: limit_status
+
+		annotation SummarizationSetBy = User
+
+	column value_per_250h
+		dataType: double
+		formatString: #,0.0
+		lineageTag: d78fe98b-ddfe-59c0-9819-7d387113dad1
+		summarizeBy: none
+		sourceColumn: value_per_250h
+
+		annotation SummarizationSetBy = User
+
+	column anomaly
+		dataType: string
+		lineageTag: f3b4c664-db10-5416-9da8-c95a96512aa9
+		summarizeBy: none
+		sourceColumn: anomaly
+
+		annotation SummarizationSetBy = User
+
+	column z
+		dataType: double
+		formatString: 0.0
+		lineageTag: 02a5070e-959e-5eaf-b2ae-087777bb34c5
+		summarizeBy: none
+		sourceColumn: z
+
+		annotation SummarizationSetBy = User
+
+	column unit_baseline
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 88654126-8232-58ab-ad79-22debe11e3d7
+		summarizeBy: none
+		sourceColumn: unit_baseline
+
+		annotation SummarizationSetBy = User
+
+	partition fact_results = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "fact_results.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"sample_id", type text}, {"test", type text}, {"value", type number}, {"unit", type text}, {"unit_id", type text}, {"sample_date", type date}, {"limit_status", type text}, {"value_per_250h", type number}, {"anomaly", type text}, {"z", type number}, {"unit_baseline", type number}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

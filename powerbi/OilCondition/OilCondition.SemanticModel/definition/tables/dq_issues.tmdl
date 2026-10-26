@@ -1,0 +1,96 @@
+table dq_issues
+	lineageTag: ec40d411-750b-5df1-9bd5-a60fe65249fe
+
+	measure 'DQ Issues' = COUNTROWS ( dq_issues )
+		formatString: 0
+		lineageTag: ef974f4a-c187-52a3-8309-954649aea904
+
+	measure 'DQ Issues by Month' = CALCULATE ( [DQ Issues], KEEPFILTERS ( NOT ISBLANK ( 'Date'[Month Name] ) ) )
+		formatString: 0
+		lineageTag: 885c0cad-bf7f-5c92-bb63-69afb52f7715
+
+	measure 'DQ Auto-fixed' = CALCULATE ( [DQ Issues], dq_issues[action] IN { "corrected", "imputed", "dropped" } )
+		formatString: 0
+		lineageTag: bd453127-959b-57b8-a31d-dae32e95160f
+
+	measure 'DQ Needing Follow-up' = CALCULATE ( [DQ Issues], dq_issues[action] IN { "flagged", "quarantined", "removed value" } )
+		formatString: 0
+		lineageTag: 247cbc52-134d-51b3-8728-71b70ea7830b
+
+	measure 'DQ Quarantined' = CALCULATE ( [DQ Issues], dq_issues[action] = "quarantined" )
+		formatString: 0
+		lineageTag: cd8c205b-cec8-5d87-85f1-e77c29bd5073
+
+	measure '% Samples Clean' = 1 - DIVIDE ( CALCULATE ( DISTINCTCOUNT ( dq_issues[sample_id] ), dq_issues[action] <> "dropped" ), [Samples] )
+		formatString: 0%
+		lineageTag: 96b51eec-a63b-503c-90c2-2c3b327a334d
+
+	column sample_id
+		dataType: string
+		lineageTag: bd4f4010-f607-5df1-b719-8bf15e78b331
+		summarizeBy: none
+		sourceColumn: sample_id
+
+		annotation SummarizationSetBy = User
+
+	column issue
+		dataType: string
+		lineageTag: 710f037b-fb54-5bc8-a549-b2e8de98a4f0
+		summarizeBy: none
+		sourceColumn: issue
+
+		annotation SummarizationSetBy = User
+
+	column field
+		dataType: string
+		lineageTag: 593618cc-2d33-595d-ba21-f79b1d783d3f
+		summarizeBy: none
+		sourceColumn: field
+
+		annotation SummarizationSetBy = User
+
+	column original
+		dataType: string
+		lineageTag: a29a9ede-e3a6-5e13-84c3-d878057129e2
+		summarizeBy: none
+		sourceColumn: original
+
+		annotation SummarizationSetBy = User
+
+	column action
+		dataType: string
+		lineageTag: d20dd6ef-af30-5ff3-bbc7-9c96717aa6f7
+		summarizeBy: none
+		sourceColumn: action
+
+		annotation SummarizationSetBy = User
+
+	column detail
+		dataType: string
+		lineageTag: 0e405dc5-f473-5f3d-a911-fd28f6ec4190
+		summarizeBy: none
+		sourceColumn: detail
+
+		annotation SummarizationSetBy = User
+
+	column Issue = ```
+			VAR t = SUBSTITUTE ( dq_issues[issue], "_", " " )
+			RETURN UPPER ( LEFT ( t, 1 ) ) & MID ( t, 2, 100 )
+			```
+		dataType: string
+		lineageTag: b2fde228-7cc6-513a-91fd-06abcb0a9c27
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+	partition dq_issues = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "dq_issues.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"sample_id", type text}, {"issue", type text}, {"field", type text}, {"original", type text}, {"action", type text}, {"detail", type text}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

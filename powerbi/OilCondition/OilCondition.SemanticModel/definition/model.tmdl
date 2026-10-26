@@ -1,0 +1,19 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["DataFolder", "fact_samples", "fact_results", "dim_unit", "dim_test", "dq_issues", "quarantine"]
+
+ref table fact_samples
+ref table fact_results
+ref table dim_unit
+ref table dim_test
+ref table dq_issues
+ref table quarantine
+ref table Date

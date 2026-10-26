@@ -1,0 +1,63 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {
+    "customTheme": {
+      "name": "oil_condition_theme.json",
+      "type": "RegisteredResources",
+      "reportVersionAtImport": {
+        "visual": "2.13.0",
+        "report": "3.3.0",
+        "page": "2.1.0"
+      }
+    }
+  },
+  "resourcePackages": [
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "oil_condition_theme.json",
+          "path": "oil_condition_theme.json",
+          "type": "CustomTheme"
+        },
+        {
+          "name": "page1_fleet_overview.png",
+          "path": "page1_fleet_overview.png",
+          "type": "Image"
+        },
+        {
+          "name": "page2_unit_trends.png",
+          "path": "page2_unit_trends.png",
+          "type": "Image"
+        },
+        {
+          "name": "page3_data_quality.png",
+          "path": "page3_data_quality.png",
+          "type": "Image"
+        }
+      ]
+    }
+  ],
+  "objects": {
+    "outspacePane": [
+      {
+        "properties": {
+          "expanded": {
+            "expr": {
+              "Literal": {
+                "Value": "false"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "settings": {
+    "useStylableVisualContainerHeader": true,
+    "defaultDrillFilterOtherVisuals": true,
+    "allowChangeFilterTypes": true,
+    "useEnhancedTooltips": true
+  }
+}

@@ -1,0 +1,23 @@
+relationship f0426f14-a9ba-5d6c-a839-490d8002b524
+	fromColumn: fact_samples.unit_id
+	toColumn: dim_unit.unit_id
+
+relationship 18446041-06dc-55e6-8aaa-54999310d32e
+	fromColumn: fact_results.unit_id
+	toColumn: dim_unit.unit_id
+
+relationship cb0cbf03-4055-5dc9-aaeb-18fedfdf63ba
+	fromColumn: fact_results.test
+	toColumn: dim_test.test
+
+relationship 5009dde0-1827-5110-8959-2dbffdd6a2ad
+	fromColumn: fact_samples.sample_date
+	toColumn: Date.Date
+
+relationship 2db40690-cf34-5604-b476-40ff58ff53da
+	fromColumn: fact_results.sample_date
+	toColumn: Date.Date
+
+relationship d5efd70b-bfe1-5f2a-a2ff-ce3be91d1594
+	fromColumn: dq_issues.sample_id
+	toColumn: fact_samples.sample_id

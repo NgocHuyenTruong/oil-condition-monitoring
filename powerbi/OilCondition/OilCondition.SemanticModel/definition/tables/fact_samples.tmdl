@@ -1,0 +1,274 @@
+table fact_samples
+	lineageTag: 8bad378d-5d69-5977-a22b-24843b564cec
+
+	measure Samples = DISTINCTCOUNT ( fact_samples[sample_id] )
+		formatString: 0
+		lineageTag: 59103a18-50fa-5fa4-868f-39e5353a1bc4
+
+	measure 'Units Sampled' = DISTINCTCOUNT ( fact_samples[unit_id] )
+		formatString: 0
+		lineageTag: 495a72c4-2631-5248-9f59-ce4da7445a73
+
+	measure 'Samples Critical' = CALCULATE ( [Samples], fact_samples[status] = "Critical" )
+		formatString: 0
+		lineageTag: 21d3b0a0-eb4f-520d-89aa-0f1a7d3b2f83
+
+	measure 'Samples Caution' = CALCULATE ( [Samples], fact_samples[status] = "Caution" )
+		formatString: 0
+		lineageTag: f47bbadf-3775-5106-bb35-8779202e6f51
+
+	measure 'Samples Watch' = CALCULATE ( [Samples], fact_samples[status] = "Watch" )
+		formatString: 0
+		lineageTag: 493464e3-3603-567e-81d7-c17825437c62
+
+	measure '% Samples Needing Action' = DIVIDE ( CALCULATE ( [Samples], fact_samples[status] IN { "Caution", "Critical" } ), [Samples] )
+		formatString: 0.0%
+		lineageTag: aa34c3ba-efe0-555a-aad5-22d14c45ed89
+
+	measure 'Report Date' = ```
+			VAR PeriodEnd = MAX ( 'Date'[Date] )
+			VAR LastData = CALCULATE ( MAX ( fact_samples[sample_date] ), REMOVEFILTERS () )
+			RETURN MIN ( PeriodEnd, LastData )
+			```
+		formatString: dd mmm yyyy
+		lineageTag: 3a489532-3598-5846-98b1-a0a23f02ec4c
+
+	measure 'Latest Sample Date' = ```
+			VAR PeriodEnd = [Report Date]
+			RETURN
+			    CALCULATE (
+			        MAX ( fact_samples[sample_date] ),
+			        REMOVEFILTERS ( 'Date' ),
+			        fact_samples[sample_date] <= PeriodEnd
+			    )
+			```
+		formatString: dd mmm yyyy
+		lineageTag: 33b0c057-9fc4-5ef8-b773-1d35fcdd372a
+
+	measure 'Latest Status' = ```
+			VAR LatestDate = [Latest Sample Date]
+			RETURN
+			    CALCULATE (
+			        SELECTEDVALUE ( fact_samples[status] ),
+			        REMOVEFILTERS ( 'Date' ),
+			        fact_samples[sample_date] = LatestDate
+			    )
+			```
+		lineageTag: 620799ab-e6b6-5431-9f5d-61a66fe3b483
+
+	measure 'Latest Diagnosis' = ```
+			VAR LatestDate = [Latest Sample Date]
+			RETURN
+			    CALCULATE (
+			        SELECTEDVALUE ( fact_samples[diagnosis] ),
+			        REMOVEFILTERS ( 'Date' ),
+			        fact_samples[sample_date] = LatestDate
+			    )
+			```
+		lineageTag: c9d26ae4-86b1-5f7f-aea6-b83675564123
+
+	measure 'Latest Recommendation' = ```
+			VAR LatestDate = [Latest Sample Date]
+			RETURN
+			    CALCULATE (
+			        SELECTEDVALUE ( fact_samples[recommendation] ),
+			        REMOVEFILTERS ( 'Date' ),
+			        fact_samples[sample_date] = LatestDate
+			    )
+			```
+		lineageTag: d3ac8510-ae7f-5bf7-957c-110cc607126a
+
+	measure 'Units Needing Action' = COUNTROWS ( FILTER ( VALUES ( dim_unit[unit_id] ), [Latest Status] IN { "Caution", "Critical" } ) ) + 0
+		formatString: 0
+		lineageTag: eb91d69d-fbaf-52e0-84dc-445d71212c5e
+
+	measure 'Units on Watch' = COUNTROWS ( FILTER ( VALUES ( dim_unit[unit_id] ), [Latest Status] = "Watch" ) ) + 0
+		formatString: 0
+		lineageTag: 146f7b38-c319-547e-aa2b-c403ee93e1e2
+
+	measure 'Days Since Last Sample' = ```
+			VAR LatestDate = [Latest Sample Date]
+			RETURN IF ( NOT ISBLANK ( LatestDate ), INT ( [Report Date] - LatestDate ) )
+			```
+		formatString: 0
+		lineageTag: 313724ec-7e61-5f35-a749-6e0b30462efa
+
+	measure 'Overdue Units' = COUNTROWS ( FILTER ( VALUES ( dim_unit[unit_id] ), [Days Since Last Sample] > 30 ) ) + 0
+		formatString: 0
+		lineageTag: 96fadd1b-18de-5742-af1d-44d5bc5cf4af
+
+	measure 'Units Sampled Label' = FORMAT ( [Units Sampled] + 0, "0" ) & " / " & FORMAT ( COUNTROWS ( dim_unit ), "0" )
+		lineageTag: 2f1f1022-3cfa-573e-a05d-966e8a64bfe0
+
+	measure 'Latest Status Label' = ```
+			SWITCH (
+			    [Latest Status],
+			    "Critical", UNICHAR ( 9632 ) & " Critical",
+			    "Caution", UNICHAR ( 9650 ) & " Caution",
+			    "Watch", UNICHAR ( 9679 ) & " Watch",
+			    "Normal", UNICHAR ( 10003 ) & " Normal"
+			)
+			```
+		lineageTag: 7b2e86c9-3725-5047-98c5-efb3d4d8323d
+
+	measure 'Latest Status Colour' = SWITCH ( [Latest Status], "Critical", "#D03B3B", "Caution", "#EC835A", "Watch", "#FAB219", "Normal", "#0CA30C", "#8A97A8" )
+		lineageTag: d950d18b-7412-56ef-b99b-2c903c38975a
+
+	measure 'Action Status' = IF ( [Latest Status] IN { "Caution", "Critical" }, [Latest Status Label] )
+		lineageTag: 11bf7a4d-616c-5af1-b00c-d5d82164a0cc
+
+	measure 'Action Last Sample' = IF ( [Latest Status] IN { "Caution", "Critical" }, [Latest Sample Date] )
+		formatString: dd mmm
+		lineageTag: db0cab03-eab3-56b6-8f7c-38531f390c97
+
+	measure 'Action Likely Cause' = IF ( [Latest Status] IN { "Caution", "Critical" }, SUBSTITUTE ( [Latest Diagnosis], "Possible ", "" ) )
+		lineageTag: 08a559a5-d2a0-5003-9a73-8d5ef71453a7
+
+	column sample_id
+		dataType: string
+		lineageTag: 93a799f3-2bdd-5695-aa02-7b2a4f73f3a9
+		summarizeBy: none
+		sourceColumn: sample_id
+
+		annotation SummarizationSetBy = User
+
+	column unit_id
+		dataType: string
+		lineageTag: 1c9dcfbe-2b41-5307-86be-70665bd9a021
+		summarizeBy: none
+		sourceColumn: unit_id
+
+		annotation SummarizationSetBy = User
+
+	column sample_date
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 18c40cc6-8286-5b60-a1f2-960dfdb2a215
+		summarizeBy: none
+		sourceColumn: sample_date
+
+		annotation SummarizationSetBy = User
+
+	column sample_date_quality
+		dataType: string
+		lineageTag: 84260a1a-f038-565f-8fd2-de75b4083d49
+		summarizeBy: none
+		sourceColumn: sample_date_quality
+
+		annotation SummarizationSetBy = User
+
+	column received_at
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: ae0c5130-b199-596d-a7c0-3288f82e0ee3
+		summarizeBy: none
+		sourceColumn: received_at
+
+		annotation SummarizationSetBy = User
+
+	column reported_at
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 1b43a8ba-935c-5a49-a4ec-6a5097a8edfe
+		summarizeBy: none
+		sourceColumn: reported_at
+
+		annotation SummarizationSetBy = User
+
+	column unit_hours
+		dataType: int64
+		formatString: #,0
+		lineageTag: 1bcdb963-d28e-59eb-890d-82d4f478a940
+		summarizeBy: none
+		sourceColumn: unit_hours
+
+		annotation SummarizationSetBy = User
+
+	column oil_hours
+		dataType: double
+		formatString: #,0
+		lineageTag: ef6888b7-b6f8-5ebe-a7ef-5dbbe2413726
+		summarizeBy: none
+		sourceColumn: oil_hours
+
+		annotation SummarizationSetBy = User
+
+	column oil_changed
+		dataType: string
+		lineageTag: 99349b29-015e-5a4a-9e3a-7c58fb258aed
+		summarizeBy: none
+		sourceColumn: oil_changed
+
+		annotation SummarizationSetBy = User
+
+	column lab_status
+		dataType: string
+		lineageTag: 667714b2-60da-592d-9a46-0958b58ad9bc
+		summarizeBy: none
+		sourceColumn: lab_status
+
+		annotation SummarizationSetBy = User
+
+	column status
+		dataType: string
+		lineageTag: a189ab74-0f17-5a70-9855-ac879bbca720
+		summarizeBy: none
+		sourceColumn: status
+		sortByColumn: 'Status Order'
+
+		annotation SummarizationSetBy = User
+
+	column attention_tests
+		dataType: string
+		lineageTag: 61514821-dc79-5148-ae48-4056471d0e1a
+		summarizeBy: none
+		sourceColumn: attention_tests
+
+		annotation SummarizationSetBy = User
+
+	column diagnosis
+		dataType: string
+		lineageTag: f15540fd-2f98-59fb-8271-48b7cc13c2b4
+		summarizeBy: none
+		sourceColumn: diagnosis
+
+		annotation SummarizationSetBy = User
+
+	column recommendation
+		dataType: string
+		lineageTag: 0aec74af-cd50-5133-b9c1-2b13e3eeee84
+		summarizeBy: none
+		sourceColumn: recommendation
+
+		annotation SummarizationSetBy = User
+
+	column isolated_spike
+		dataType: string
+		lineageTag: ea027d46-da33-554e-989c-3b56d77a5b5e
+		summarizeBy: none
+		sourceColumn: isolated_spike
+
+		annotation SummarizationSetBy = User
+
+	column 'Status Order'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3bd2cc10-f38f-533b-94df-9d007d68ccaf
+		summarizeBy: none
+		sourceColumn: Status Order
+		isHidden
+
+		annotation SummarizationSetBy = User
+
+	partition fact_samples = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "fact_samples.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"sample_id", type text}, {"unit_id", type text}, {"sample_date", type date}, {"sample_date_quality", type text}, {"received_at", type date}, {"reported_at", type date}, {"unit_hours", Int64.Type}, {"oil_hours", type number}, {"oil_changed", type text}, {"lab_status", type text}, {"status", type text}, {"attention_tests", type text}, {"diagnosis", type text}, {"recommendation", type text}, {"isolated_spike", type text}}, "en-US"),
+				    Added0 = Table.AddColumn(Typed, "Status Order", each if [status] = "Normal" then 1 else if [status] = "Watch" then 2 else if [status] = "Caution" then 3 else if [status] = "Critical" then 4 else 5, Int64.Type)
+				in
+				    Added0
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,6 @@
+expression DataFolder = "F:\UOW-Sem 3\oil-condition-monitoring\output\powerbi\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: f6bad6f1-7555-56fa-9860-ac5861ee3b67
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation

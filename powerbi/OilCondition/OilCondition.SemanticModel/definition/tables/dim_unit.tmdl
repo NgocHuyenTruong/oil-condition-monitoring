@@ -1,0 +1,91 @@
+table dim_unit
+	lineageTag: 7015d368-ce8a-5f63-b913-969b29f40f0c
+
+	column unit_id
+		dataType: string
+		lineageTag: 68a2c284-4ee8-5e15-a64b-187265b53c1c
+		summarizeBy: none
+		sourceColumn: unit_id
+
+		annotation SummarizationSetBy = User
+
+	column unit_type
+		dataType: string
+		lineageTag: 5927547b-b804-5e72-8145-84a66e3823f8
+		summarizeBy: none
+		sourceColumn: unit_type
+
+		annotation SummarizationSetBy = User
+
+	column model
+		dataType: string
+		lineageTag: 528298f7-4a14-5f08-ada9-32c05edc8c45
+		summarizeBy: none
+		sourceColumn: model
+
+		annotation SummarizationSetBy = User
+
+	column engine_model
+		dataType: string
+		lineageTag: 870ab564-1ba9-58c1-bf01-613803518cdc
+		summarizeBy: none
+		sourceColumn: engine_model
+
+		annotation SummarizationSetBy = User
+
+	column site
+		dataType: string
+		lineageTag: be1db0dd-bfc8-5183-8c10-2737a0c7a972
+		summarizeBy: none
+		sourceColumn: site
+
+		annotation SummarizationSetBy = User
+
+	column hours_at_start_2026
+		dataType: int64
+		formatString: #,0
+		lineageTag: 936a227c-d594-5ca2-bed1-5776d319fe78
+		summarizeBy: none
+		sourceColumn: hours_at_start_2026
+
+		annotation SummarizationSetBy = User
+
+	column 'Current Status' = ```
+			VAR LatestDate = CALCULATE ( MAX ( fact_samples[sample_date] ) )
+			RETURN CALCULATE ( SELECTEDVALUE ( fact_samples[status] ), fact_samples[sample_date] = LatestDate )
+			```
+		dataType: string
+		lineageTag: a5e04e7e-c5b6-5267-a722-72dc435adcef
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+	column Status = ```
+			SWITCH ( dim_unit[Current Status],
+			    "Critical", UNICHAR ( 9632 ) & " Critical", "Caution", UNICHAR ( 9650 ) & " Caution",
+			    "Watch", UNICHAR ( 9679 ) & " Watch", "Normal", UNICHAR ( 10003 ) & " Normal" )
+			```
+		dataType: string
+		lineageTag: 52dccd92-98cb-5b76-a3ad-1edb44d3e8e1
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+	column 'Unit and Status' = dim_unit[unit_id] & "    " & dim_unit[Status]
+		dataType: string
+		lineageTag: 0784c238-b746-5935-8ad8-01a9271a9d0e
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+	partition dim_unit = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "dim_unit.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"unit_id", type text}, {"unit_type", type text}, {"model", type text}, {"engine_model", type text}, {"site", type text}, {"hours_at_start_2026", Int64.Type}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

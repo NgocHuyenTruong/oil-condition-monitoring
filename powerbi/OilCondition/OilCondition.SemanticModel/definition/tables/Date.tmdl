@@ -1,0 +1,55 @@
+table Date
+	lineageTag: 393d6f3e-0e1c-503e-b27b-eca74d4f6fec
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: dd mmm yyyy
+		lineageTag: e8c68cbc-ca0c-5e1c-9445-f3af18aafba5
+		summarizeBy: none
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = User
+
+	column Month
+		dataType: string
+		lineageTag: bcf7b720-4d6c-585d-b283-006257b438e1
+		summarizeBy: none
+		sourceColumn: [Month]
+
+		annotation SummarizationSetBy = User
+
+	column 'Month Name'
+		dataType: string
+		lineageTag: 2723d71d-5873-5eac-95e0-fd840f048ec2
+		summarizeBy: none
+		sourceColumn: [Month Name]
+		sortByColumn: 'Month Start'
+
+		annotation SummarizationSetBy = User
+
+	column 'Month Start'
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: 5d910fee-7279-564b-87ad-b1f381ea8526
+		summarizeBy: none
+		sourceColumn: [Month Start]
+
+		annotation SummarizationSetBy = User
+
+	partition Date = calculated
+		mode: import
+		source = ```
+				ADDCOLUMNS (
+				    CALENDAR (
+				        DATE ( YEAR ( MIN ( fact_samples[sample_date] ) ), 1, 1 ),
+				        DATE ( YEAR ( MAX ( fact_samples[sample_date] ) ), 12, 31 )
+				    ),
+				    "Month", FORMAT ( [Date], "yyyy-mm" ),
+				    "Month Name", FORMAT ( [Date], "mmm yyyy" ),
+				    "Month Start", DATE ( YEAR ( [Date] ), MONTH ( [Date] ), 1 )
+				)
+				```
+
+	annotation PBI_Id = date_table

@@ -1,0 +1,15 @@
+test,caution_low,critical_low,caution_high,critical_high,source
+Fe,,,50,100,indicative diesel engine guideline
+Cu,,,20,40,indicative diesel engine guideline
+Pb,,,15,30,indicative diesel engine guideline
+Cr,,,8,15,indicative diesel engine guideline
+Al,,,10,20,indicative diesel engine guideline
+Sn,,,8,15,indicative diesel engine guideline
+Si,,,15,25,indicative diesel engine guideline
+Na,,,30,60,indicative diesel engine guideline
+K,,,15,30,indicative diesel engine guideline
+V100,12.5,11.5,16.5,17.5,SAE 15W-40 nominal 14.5 cSt
+SOOT,,,3,5,indicative diesel engine guideline
+WATER,,,0.1,0.2,indicative diesel engine guideline
+FUEL,,,3,5,indicative diesel engine guideline
+TBN,4,3,,,indicative diesel engine guideline

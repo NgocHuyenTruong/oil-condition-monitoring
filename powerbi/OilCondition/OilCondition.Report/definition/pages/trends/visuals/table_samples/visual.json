@@ -1,0 +1,184 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "table_samples",
+  "position": {
+    "x": 892,
+    "y": 248,
+    "z": 8000,
+    "width": 372,
+    "height": 456,
+    "tabOrder": 8000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_results"
+                    }
+                  },
+                  "Property": "sample_date"
+                }
+              },
+              "queryRef": "fact_results.sample_date",
+              "nativeQueryRef": "sample_date",
+              "displayName": "Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_results"
+                    }
+                  },
+                  "Property": "value"
+                }
+              },
+              "queryRef": "fact_results.value",
+              "nativeQueryRef": "value",
+              "displayName": "Value"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_results"
+                    }
+                  },
+                  "Property": "value_per_250h"
+                }
+              },
+              "queryRef": "fact_results.value_per_250h",
+              "nativeQueryRef": "value_per_250h",
+              "displayName": "Per 250 h"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_results"
+                    }
+                  },
+                  "Property": "limit_status"
+                }
+              },
+              "queryRef": "fact_results.limit_status",
+              "nativeQueryRef": "limit_status",
+              "displayName": "Limit"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_results"
+                    }
+                  },
+                  "Property": "anomaly"
+                }
+              },
+              "queryRef": "fact_results.anomaly",
+              "nativeQueryRef": "anomaly",
+              "displayName": "Anomaly"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_results"
+                  }
+                },
+                "Property": "sample_date"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_results"
+                        }
+                      },
+                      "Property": "Result Status Colour"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "fact_results.limit_status"
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Samples for this unit and test'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

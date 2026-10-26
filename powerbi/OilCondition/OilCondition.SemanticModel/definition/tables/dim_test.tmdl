@@ -1,0 +1,100 @@
+table dim_test
+	lineageTag: 2c9330a1-4e91-52dc-bdab-51f3dd575bb7
+
+	column test
+		dataType: string
+		lineageTag: 013053fc-0a02-5c4e-af02-38d4394bbd3f
+		summarizeBy: none
+		sourceColumn: test
+		sortByColumn: sort_order
+
+		annotation SummarizationSetBy = User
+
+	column description
+		dataType: string
+		lineageTag: 577d4b38-ed4f-5ba5-9d67-d1093594fd89
+		summarizeBy: none
+		sourceColumn: description
+
+		annotation SummarizationSetBy = User
+
+	column unit
+		dataType: string
+		lineageTag: 1e564717-2413-5fbc-b13c-69bd25ae4528
+		summarizeBy: none
+		sourceColumn: unit
+
+		annotation SummarizationSetBy = User
+
+	column sort_order
+		dataType: int64
+		formatString: 0
+		lineageTag: 8bb63b43-7c7f-520e-889f-6e7d67206611
+		summarizeBy: none
+		sourceColumn: sort_order
+
+		annotation SummarizationSetBy = User
+
+	column normalised_to_250h
+		dataType: string
+		lineageTag: c12cba8b-d3a1-587b-9f21-0e94ec2f861d
+		summarizeBy: none
+		sourceColumn: normalised_to_250h
+
+		annotation SummarizationSetBy = User
+
+	column caution_low
+		dataType: double
+		formatString: #,0.##
+		lineageTag: 2321e564-b7df-5963-b522-c03719c1c587
+		summarizeBy: none
+		sourceColumn: caution_low
+
+		annotation SummarizationSetBy = User
+
+	column critical_low
+		dataType: double
+		formatString: #,0.##
+		lineageTag: d033216a-aa49-515a-a142-614e0c66bc7d
+		summarizeBy: none
+		sourceColumn: critical_low
+
+		annotation SummarizationSetBy = User
+
+	column caution_high
+		dataType: double
+		formatString: #,0.##
+		lineageTag: 7d64dbc0-ed2f-5632-a68a-2448fd55d97c
+		summarizeBy: none
+		sourceColumn: caution_high
+
+		annotation SummarizationSetBy = User
+
+	column critical_high
+		dataType: double
+		formatString: #,0.##
+		lineageTag: 26344fb6-ccbf-562e-97bd-de7c7947fee9
+		summarizeBy: none
+		sourceColumn: critical_high
+
+		annotation SummarizationSetBy = User
+
+	column source
+		dataType: string
+		lineageTag: 895fec07-b8b1-5536-80e1-d2d38063f4b6
+		summarizeBy: none
+		sourceColumn: source
+
+		annotation SummarizationSetBy = User
+
+	partition dim_test = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "dim_test.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"test", type text}, {"description", type text}, {"unit", type text}, {"sort_order", Int64.Type}, {"normalised_to_250h", type text}, {"caution_low", type number}, {"critical_low", type number}, {"caution_high", type number}, {"critical_high", type number}, {"source", type text}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

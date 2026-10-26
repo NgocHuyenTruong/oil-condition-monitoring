@@ -1,0 +1,48 @@
+table quarantine
+	lineageTag: b27ea596-ef83-5ba2-9a57-c47962a1642d
+
+	column sample_id
+		dataType: string
+		lineageTag: 16ffe608-84b4-5afe-9ab4-09ca59b65bf8
+		summarizeBy: none
+		sourceColumn: sample_id
+
+		annotation SummarizationSetBy = User
+
+	column reason
+		dataType: string
+		lineageTag: 2e3967a4-a7cd-56f1-803c-2310cf08b8f5
+		summarizeBy: none
+		sourceColumn: reason
+
+		annotation SummarizationSetBy = User
+
+	column record
+		dataType: string
+		lineageTag: 29562ec9-6013-577d-b051-61200281dd40
+		summarizeBy: none
+		sourceColumn: record
+
+		annotation SummarizationSetBy = User
+
+	column Reason = ```
+			VAR t = SUBSTITUTE ( quarantine[reason], "_", " " )
+			RETURN UPPER ( LEFT ( t, 1 ) ) & MID ( t, 2, 100 )
+			```
+		dataType: string
+		lineageTag: b2fff55f-53d6-513f-8054-97ba2f3df463
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+	partition quarantine = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "quarantine.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"sample_id", type text}, {"reason", type text}, {"record", type text}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
